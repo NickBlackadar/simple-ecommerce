@@ -12,8 +12,8 @@ const ProductPage = () => {
     <div>
       <ul>
         {data?.map((product) => (
-          <li key={product.id}>
-            <Link to={`/products/${product.id}`}>{product.title}</Link>
+          <li key={product._id}>
+            <Link to={`/products/${product._id}`}>{product.name}</Link>
           </li>
         ))}
       </ul>

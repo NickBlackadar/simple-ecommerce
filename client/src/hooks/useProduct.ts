@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Product } from "../types/Product";
 import APIClient from "../services/api-client";
 import ms from "ms";
