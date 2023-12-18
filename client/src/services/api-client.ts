@@ -22,6 +22,11 @@ class APIClient<T> {
     return res.data;
   };
 
+  addProduct = async (product: T) => {
+    const res = await axiosInstance.post<T>(this.endpoint, product);
+    return res.data;
+  };
+
   // Cateogries
   getCategories = async () => {
     const res = await axiosInstance.get<T>(this.endpoint);

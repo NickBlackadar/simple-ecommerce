@@ -16,9 +16,9 @@ const ProductPage = () => {
 
   return (
     <>
-      <div>{data.title}</div>
+      <div>{data.name}</div>
       <div>Price: {data.price}</div>
-      <img src={data.image} />
+      <img src={data.imageUrl} className="max-h-96 max-w-96 " />
       <select
         name="quantity"
         onChange={(e) => setQuantity(parseInt(e.target.value))}
@@ -30,7 +30,7 @@ const ProductPage = () => {
       <button
         onClick={() =>
           addToCart({
-            id: data.id,
+            id: data._id!,
             description: data.description,
             price: data.price,
             quantity: quantity,
