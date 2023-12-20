@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useDropzone } from "react-dropzone";
 import useUpload from "@/hooks/useUpload";
 import { Loader2 } from "lucide-react";
+import { AxiosError } from "axios";
 
 const categories = [
   {
@@ -62,6 +63,7 @@ const AddProduct = () => {
     handleSubmit,
     reset,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -76,6 +78,11 @@ const AddProduct = () => {
 
   const addProduct = useAddProduct();
   const uploadImage = useUpload();
+
+  type MyErrorResponse = {
+    message: string;
+    emptyFields: string[];
+  };
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     await uploadImage
@@ -100,11 +107,23 @@ const AddProduct = () => {
               description: `${res.name} added successfully.`,
             });
           })
-          .catch((err) => {
-            console.log(err);
+          .catch((err: AxiosError<MyErrorResponse>) => {
+            if (err.response?.data.emptyFields) {
+              err.response?.data.emptyFields.forEach((field) => {
+                setError(field as keyof FormData, {
+                  type: "manual",
+                  message: "This field is required.",
+                });
+              });
+            }
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: err.response?.data.message,
+            });
           });
       })
-      .catch((err) => {
+      .catch((err: AxiosError<Error>) => {
         console.log(err);
         toast({
           variant: "destructive",
