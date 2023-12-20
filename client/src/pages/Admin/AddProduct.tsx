@@ -1,17 +1,12 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useForm,
-  FieldValues,
-  SubmitHandler,
-  Controller,
-} from "react-hook-form";
-import { Product } from "@/types/Product";
+import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import useAddProduct from "@/hooks/useAddProduct";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -23,6 +18,8 @@ import {
 import { useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDropzone } from "react-dropzone";
+import useUpload from "@/hooks/useUpload";
+import { Loader2 } from "lucide-react";
 
 const categories = [
   {
@@ -30,8 +27,8 @@ const categories = [
     value: "electronics",
   },
   {
-    name: "Clothing",
-    value: "clothing",
+    name: "Kitchen",
+    value: "kitchen",
   },
   {
     name: "Shoes",
@@ -48,7 +45,9 @@ const schema = z.object({
   price: z
     .number({ invalid_type_error: "Price must be a number." })
     .min(0.01, { message: "Price must be greater than 0." }),
-  category: z.string({ required_error: "Category is required." }),
+  category: z
+    .string({ required_error: "Category is required." })
+    .min(1, { message: "Category is required." }),
   description: z.string().min(2, { message: "Description is required." }),
   image: z.string({ required_error: "Image is required." }).url(),
 });
@@ -61,33 +60,58 @@ const AddProduct = () => {
     control,
     register,
     handleSubmit,
+    reset,
     setValue,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      category: "",
+      description: "",
+      image: "",
+    },
+  });
+  const { toast } = useToast();
 
-  const mutation = useAddProduct();
+  const addProduct = useAddProduct();
+  const uploadImage = useUpload();
 
-  const onSubmit: SubmitHandler<FormData> = async (data: FieldValues) => {
-    const formData = new FormData();
-
-    formData.append("file", data.image);
-    formData.append("upload_preset", "t94mq3co");
-    const results = await fetch(
-      "https://api.cloudinary.com/v1_1/dz2lbuez3/image/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    ).then((res) => res.json());
-
-    const product: Product = {
-      name: data.name,
-      price: data.price,
-      category: data.category,
-      description: data.description,
-      imageUrl: results.secure_url,
-    };
-    mutation.mutate(product);
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    await uploadImage
+      .mutateAsync({
+        file: data.image,
+        upload_preset: "t94mq3co",
+      })
+      .then(async (res) => {
+        await addProduct
+          .mutateAsync({
+            name: data.name,
+            price: data.price,
+            category: data.category,
+            description: data.description,
+            imageUrl: res.data.secure_url,
+          })
+          .then((res) => {
+            reset();
+            setPreview("");
+            toast({
+              title: "Success!",
+              description: `${res.name} added successfully.`,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Image upload failed.",
+        });
+      });
   };
 
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
@@ -220,7 +244,16 @@ const AddProduct = () => {
                     />
                   </div>
                 )}
-                <Button>Create</Button>
+                <Button disabled={uploadImage.isPending}>
+                  Create
+                  {uploadImage.isPending ? (
+                    <span className="pl-1">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </Button>
               </div>
             </form>
           </div>

@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useEffect } from "react";
 import useCartStore, { Item } from "../store";
+import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
   const { addToCart, items } = useCartStore();
@@ -22,6 +23,7 @@ const Layout = () => {
     <>
       <NavBar />
       <Outlet />
+      <Toaster />
     </>
   );
 };
