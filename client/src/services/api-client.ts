@@ -29,7 +29,7 @@ class APIClient<T> {
 
   // Auth
   login = async (user: T) => {
-    const res = await axiosInstance.post<T>(this.endpoint, user);
+    const res = await axiosInstance.post(this.endpoint, user);
     return res.data;
   };
 

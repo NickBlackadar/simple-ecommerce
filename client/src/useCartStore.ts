@@ -40,7 +40,13 @@ const useCartStore = create<CartStore>((set) => ({
         };
       }
     }),
-  clearCart: () => set({ items: [] }),
+  clearCart: () =>
+    set(() => {
+      return {
+        items: [],
+        itemCount: 0,
+      };
+    }),
   removeFromCart: (productId) =>
     set((store) => ({
       items: store.items.filter((item) => item.id !== productId),

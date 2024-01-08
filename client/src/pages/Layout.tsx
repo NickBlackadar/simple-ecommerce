@@ -8,21 +8,24 @@ import useAuthStore from "@/useAuthStore";
 const Layout = () => {
   const addToCart = useCartStore((s) => s.addToCart);
   const items = useCartStore((s) => s.items);
-  const setUser = useAuthStore((s) => s.setUser);
+  const loginUser = useAuthStore((s) => s.loginUser);
 
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
-    const storedUser = localStorage.getItem("user");
 
     if (storedCart) {
       const parsedCart = JSON.parse(storedCart);
       parsedCart.forEach((item: Item) => addToCart(item));
     }
+  }, [addToCart]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
 
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      loginUser(JSON.parse(storedUser));
     }
-  }, [addToCart, setUser]);
+  }, [loginUser]);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));

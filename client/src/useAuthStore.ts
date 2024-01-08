@@ -3,18 +3,20 @@ import { User } from "@/types/User";
 
 interface AuthStore {
   user: User | null;
-  setUser(user: User): void;
-  login: (email: string, password: string) => void;
-  register: (email: string, password: string) => void;
-  logout: () => void;
+  loginUser: (user: User) => void;
+  logoutUser: () => void;
 }
 
 const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  setUser: (user) => set({ user }),
-  login: (email, password) => {},
-  register: (email, password) => {},
-  logout: () => {},
+  loginUser: (user) => set({ user: user }),
+  logoutUser: () =>
+    set(() => {
+      localStorage.removeItem("user");
+      return {
+        user: null,
+      };
+    }),
 }));
 
 export default useAuthStore;

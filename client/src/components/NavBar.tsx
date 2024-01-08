@@ -4,9 +4,12 @@ import { LuShoppingCart } from "react-icons/lu";
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import { Separator } from "./ui/separator";
 import MobileNav from "./MobileNav";
+import useAuthStore from "@/useAuthStore";
 
 const NavBar = () => {
   const itemCount = useCartStore((s) => s.itemCount);
+  const user = useAuthStore((s) => s.user);
+  const logoutUser = useAuthStore((s) => s.logoutUser);
 
   return (
     <div className="bg-white sticky z-50 top-0 inset-x-0 h-16">
@@ -34,20 +37,37 @@ const NavBar = () => {
               </div>
             </div>
             <div className="flex items-center">
-              <div className="hidden sm:mr-4 sm:flex sm:space-x-4">
-                <Link
-                  to="/login"
-                  className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Sign Up
-                </Link>
-              </div>
+              {user ? (
+                <div className="hidden sm:mr-4 sm:flex sm:space-x-4">
+                  <Link
+                    to="/profile"
+                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    {user.email}
+                  </Link>
+                  <button
+                    onClick={logoutUser}
+                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden sm:mr-4 sm:flex sm:space-x-4">
+                  <Link
+                    to="/login"
+                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
               <Separator
                 orientation="vertical"
                 className="hidden sm:block h-6 w-px bg-gray-200"

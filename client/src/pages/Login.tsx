@@ -1,28 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import useLogin from "@/hooks/useLogin";
 import { AxiosError } from "axios";
-import { useState } from "react";
+import useAuthStore from "@/useAuthStore";
+import { Loader2 } from "lucide-react";
 
 const schema = z.object({
-  email: z.string().min(1, { message: "Name is required." }),
-  password: z.string().min(1, { message: "Name is required." }),
+  email: z
+    .string()
+    .min(1, { message: "Email is required." })
+    .email("Invalid email."),
+  password: z.string().min(8, { message: "Password is too short." }),
 });
 
 type FormData = z.infer<typeof schema>;
 
 type ResponseError = {
   message: string;
-  emptyFields: string[];
+  emptyFields: {
+    field: string;
+    message: string;
+  }[];
 };
 
 const Login = () => {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const loginUser = useAuthStore((s) => s.loginUser);
   const {
     register,
     handleSubmit,
@@ -37,6 +44,8 @@ const Login = () => {
     },
   });
 
+  const navigate = useNavigate();
+
   const login = useLogin();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -44,22 +53,17 @@ const Login = () => {
       .mutateAsync(data)
       .then((res) => {
         reset();
-        setErrorMessage(null);
-        console.log(res);
+        loginUser(res);
+        localStorage.setItem("user", JSON.stringify(res));
+        navigate("/");
       })
       .catch((err: AxiosError<ResponseError>) => {
-        if (err.response?.data.emptyFields) {
-          err.response?.data.emptyFields.forEach((field) => {
-            setError(field as keyof FormData, {
-              type: "manual",
-              message: `${
-                field.charAt(0).toUpperCase() + field.slice(1)
-              } is required.`,
-            });
+        err.response?.data.emptyFields.forEach((error) => {
+          setError(error.field as keyof FormData, {
+            type: "manual",
+            message: error.message,
           });
-        } else if (err.response) {
-          setErrorMessage(err.response?.data.message);
-        }
+        });
       });
   };
 
@@ -78,7 +82,7 @@ const Login = () => {
           <div className="grid gap-6">
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid gap-2">
-                <div className="grid gap-1 py-2">
+                <div className="grid gap-1 py-2 h-20">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     {...register("email")}
@@ -93,7 +97,7 @@ const Login = () => {
                   )}
                 </div>
 
-                <div className="grid gap-1 py-2">
+                <div className="grid gap-1 py-2 h-20">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     {...register("password")}
@@ -108,10 +112,16 @@ const Login = () => {
                   )}
                 </div>
 
-                <Button>Login</Button>
-                {errorMessage && (
-                  <p className="text-sm text-red-500">{errorMessage}</p>
-                )}
+                <Button disabled={login.isPending} className="mt-5">
+                  Login
+                  {login.isPending ? (
+                    <span className="pl-1">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </Button>
               </div>
             </form>
           </div>

@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import APIClient from "../services/api-client";
+import { User } from "@/types/User";
 
 const apiClient = new APIClient<Login>("/users/login");
 
@@ -9,7 +10,7 @@ type Login = {
 };
 
 const useLogin = () => {
-  return useMutation<Login, Error, Login>({
+  return useMutation<User, Error, Login>({
     mutationFn: (data) => apiClient.login(data),
   });
 };

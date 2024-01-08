@@ -10,42 +10,47 @@ const createToken = (id: string) => {
   });
 };
 
+type ResponseError = {
+  field: string;
+  message: string;
+};
+
 export const signupUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  let emptyFields = [];
+  let emptyFields: ResponseError[] = [];
 
   if (!email) {
-    emptyFields.push("email");
+    emptyFields.push({ field: "email", message: "Email is required" });
   }
 
   if (!password) {
-    emptyFields.push("password");
+    emptyFields.push({ field: "password", message: "Password is required" });
   }
 
   if (emptyFields.length > 0) {
-    return res
-      .status(400)
-      .json({ message: "Please fill in all fields", emptyFields });
+    return res.status(400).json({ emptyFields });
   }
 
   if (!validator.isEmail(email)) {
-    return res.status(400).json({ message: "Please enter a valid email" });
+    emptyFields.push({ field: "email", message: "Please enter a valid email" });
+    return res.status(400).json({ emptyFields });
   }
 
   if (!validator.isStrongPassword(password)) {
-    return res.status(400).json({
+    emptyFields.push({
+      field: "password",
       message:
         "Password must be at least 8 characters long, contain at least 1 uppercase letter, 1 symbol, and 1 number",
     });
+    return res.status(400).json({ emptyFields });
   }
 
   try {
     const exists = await User.findOne({ email });
     if (exists) {
-      return res
-        .status(400)
-        .json({ message: "User with that email already exists" });
+      emptyFields.push({ field: "email", message: "User already exists" });
+      return res.status(400).json({ emptyFields });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -64,37 +69,38 @@ export const signupUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body as Record<string, string>;
 
-  let emptyFields: string[] = [];
+  let emptyFields: ResponseError[] = [];
 
   if (!email) {
-    emptyFields.push("email");
+    emptyFields.push({ field: "email", message: "Email is required" });
   }
 
   if (!password) {
-    emptyFields.push("password");
+    emptyFields.push({ field: "password", message: "Password is required" });
   }
 
   if (emptyFields.length > 0) {
-    return res
-      .status(400)
-      .json({ message: "Please fill in all fields", emptyFields });
+    return res.status(400).json({ emptyFields });
   }
 
   if (!validator.isEmail(email)) {
-    return res.status(400).json({ message: "Please enter a valid email" });
+    emptyFields.push({ field: "email", message: "Please enter a valid email" });
+    return res.status(400).json({ emptyFields });
   }
 
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User does not exist" });
+      emptyFields.push({ field: "email", message: "User does not exist" });
+      return res.status(400).json({ emptyFields });
     }
 
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      return res.status(400).json({ message: "Incorrect password" });
+      emptyFields.push({ field: "password", message: "Incorrect password" });
+      return res.status(400).json({ emptyFields });
     }
     const token = createToken(user.id);
     res.status(200).json({ email, token });
