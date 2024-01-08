@@ -1,4 +1,4 @@
-import useCartStore from "../store";
+import useCartStore from "../useCartStore";
 
 const CartItems = () => {
   const { items, removeFromCart, clearCart, updateQuantity } = useCartStore();

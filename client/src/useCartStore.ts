@@ -9,6 +9,7 @@ export interface Item {
 
 interface CartStore {
   items: Item[];
+  itemCount: number;
   addToCart: (product: Item) => void;
   clearCart: () => void;
   removeFromCart: (id: number) => void;
@@ -17,6 +18,7 @@ interface CartStore {
 
 const useCartStore = create<CartStore>((set) => ({
   items: [],
+  itemCount: 0,
   addToCart: (product) =>
     set((store) => {
       const existingItem = store.items.find((item) => item.id === product.id);
@@ -27,18 +29,31 @@ const useCartStore = create<CartStore>((set) => ({
             ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
-        return { items: updatedItems };
+        return {
+          items: updatedItems,
+          itemCount: store.itemCount + product.quantity,
+        };
       } else {
-        return { items: [...store.items, product] };
+        return {
+          items: [...store.items, product],
+          itemCount: store.itemCount + product.quantity,
+        };
       }
     }),
   clearCart: () => set({ items: [] }),
   removeFromCart: (productId) =>
     set((store) => ({
       items: store.items.filter((item) => item.id !== productId),
+      itemCount:
+        store.itemCount -
+        store.items.find((item) => item.id === productId)!.quantity,
     })),
   updateQuantity: (productId, quantity) =>
     set((store) => ({
+      itemCount:
+        store.itemCount +
+        quantity -
+        store.items.find((item) => item.id === productId)!.quantity,
       items: store.items.map((item) =>
         item.id === productId ? { ...item, quantity: quantity } : item
       ),

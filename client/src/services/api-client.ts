@@ -27,6 +27,12 @@ class APIClient<T> {
     return res.data;
   };
 
+  // Auth
+  login = async (user: T) => {
+    const res = await axiosInstance.post<T>(this.endpoint, user);
+    return res.data;
+  };
+
   // Cateogries
   getCategories = async () => {
     const res = await axiosInstance.get<T>(this.endpoint);

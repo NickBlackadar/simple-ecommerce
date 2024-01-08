@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import useCartStore from "../store";
+import useCartStore from "../useCartStore";
 import { LuShoppingCart } from "react-icons/lu";
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import { Separator } from "./ui/separator";
 import MobileNav from "./MobileNav";
 
 const NavBar = () => {
-  const itemCount = useCartStore((s) => s.items.length);
+  const itemCount = useCartStore((s) => s.itemCount);
 
   return (
     <div className="bg-white sticky z-50 top-0 inset-x-0 h-16">
