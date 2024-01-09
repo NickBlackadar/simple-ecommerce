@@ -75,7 +75,7 @@ const Login = () => {
             <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
 
             <Link className="gap-1.5" to="/signup">
-              Don't have an account? Sign up
+              Don't have an account? Create one.
             </Link>
           </div>
 

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User } from "@/types/User";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:3000/api/",
@@ -29,7 +30,12 @@ class APIClient<T> {
 
   // Auth
   login = async (user: T) => {
-    const res = await axiosInstance.post(this.endpoint, user);
+    const res = await axiosInstance.post<User>(this.endpoint, user);
+    return res.data;
+  };
+
+  signup = async (user: T) => {
+    const res = await axiosInstance.post<User>(this.endpoint, user);
     return res.data;
   };
 

@@ -1,25 +1,37 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
-import { useForm, SubmitHandler, Controller } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import useAuthStore from "@/useAuthStore";
+import useSignup from "@/hooks/useSignup";
+import { AxiosError } from "axios";
 
 const schema = z.object({
-  email: z.string().min(1, { message: "Name is required." }),
-  password: z.string().min(1, { message: "Name is required." }),
+  email: z
+    .string()
+    .min(1, { message: "Email is required." })
+    .email("Invalid email."),
+  password: z.string().min(8, { message: "Password is too short." }),
 });
 
 type FormData = z.infer<typeof schema>;
 
+type ResponseError = {
+  emptyFields: {
+    field: string;
+    message: string;
+  }[];
+};
+
 const Signup = () => {
+  const loginUser = useAuthStore((s) => s.loginUser);
   const {
-    control,
     register,
     handleSubmit,
     reset,
-    setValue,
     setError,
     formState: { errors },
   } = useForm<FormData>({
@@ -29,6 +41,29 @@ const Signup = () => {
       password: "",
     },
   });
+
+  const navigate = useNavigate();
+
+  const signup = useSignup();
+
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    signup
+      .mutateAsync(data)
+      .then((res) => {
+        reset();
+        loginUser(res);
+        localStorage.setItem("user", JSON.stringify(res));
+        navigate("/");
+      })
+      .catch((err: AxiosError<ResponseError>) => {
+        err.response?.data.emptyFields.forEach((error) => {
+          setError(error.field as keyof FormData, {
+            type: "manual",
+            message: error.message,
+          });
+        });
+      });
+  };
 
   return (
     <>
@@ -45,7 +80,7 @@ const Signup = () => {
           </div>
 
           <div className="grid gap-6">
-            <form>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid gap-2">
                 <div className="grid gap-1 py-2">
                   <Label htmlFor="email">Email</Label>
