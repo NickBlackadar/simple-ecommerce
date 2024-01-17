@@ -2,10 +2,44 @@ import Product from "../models/productModel";
 import { Request, Response } from "express";
 import { Error } from "mongoose";
 
+type Results = {
+  next: {
+    page: number;
+    limit: number;
+  };
+  previous: {
+    page: number;
+    limit: number;
+  };
+  results: any;
+};
+
 export const getProducts = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string);
+  const limit = parseInt(req.query.limit as string);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {} as Results;
+
+  if (endIndex < (await Product.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
   try {
-    const products = await Product.find();
-    res.status(200).json(products);
+    results.results = await Product.find().skip(startIndex).limit(limit);
+    res.status(200).json(results);
   } catch (err) {
     if (err instanceof Error) {
       res.status(404).json({ message: err.message });
